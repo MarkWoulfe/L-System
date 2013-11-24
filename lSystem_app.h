@@ -28,7 +28,7 @@ namespace octet
       printf("This is the example's init function!\n");
       
       axiom = "";
-      //myRule.head = 0;
+      myRule.head = 0;
       myRule.body = "";
       iterations = 0;
       angle = 0.f;
