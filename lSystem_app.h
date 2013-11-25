@@ -1,5 +1,6 @@
 //libraries for reading to/from files
 #include <fstream>
+#include <iostream>
 
 namespace octet
 {
@@ -15,6 +16,8 @@ namespace octet
     dynarray<rule> myRules;
     int iterations;
     float angle;
+    std::string currentOutput;
+    std::string currentInput;
     
 	public:
     
@@ -32,11 +35,14 @@ namespace octet
       angle = 0.f;
       
       read_file("../assets/lsystem/tree1.txt");
-      read_file("../assets/lsystem/tree2.txt");
-      read_file("../assets/lsystem/tree3.txt");
-      read_file("../assets/lsystem/tree4.txt");
-      read_file("../assets/lsystem/tree5.txt");
-      read_file("../assets/lsystem/tree6.txt");
+      iterations = 2;
+      interpret_rule();
+      
+      //read_file("../assets/lsystem/tree2.txt");
+      //read_file("../assets/lsystem/tree3.txt");
+      //read_file("../assets/lsystem/tree4.txt");
+      //read_file("../assets/lsystem/tree5.txt");
+      //read_file("../assets/lsystem/tree6.txt");
 		}
     
     void read_file(std::string file)
@@ -46,6 +52,25 @@ namespace octet
       myFile.open (file);
       if (myFile.is_open())
       {
+        rule r;
+        r.head = '[';
+        r.body = '[';
+        myRules.push_back(r);
+        
+        r.head = ']';
+        r.body = ']';
+        myRules.push_back(r);
+        
+        r.head = '+';
+        r.body = '+';
+        myRules.push_back(r);
+        
+        r.head = '-';
+        r.body = '-';
+        myRules.push_back(r);
+        
+        r.body = "";
+        
         printf("file opened\n");
         while (std::getline(myFile, line)){
           
@@ -56,7 +81,7 @@ namespace octet
           
           if (line.compare("rule") == 0){
             std::getline(myFile, line);
-            rule r;
+            //rule r;
             r.head = line[0];
             for (int i = 3; i < line.length(); i++){
               r.body.push_back(line[i]);
@@ -79,8 +104,8 @@ namespace octet
         printf("Axiom: %s \n", axiom.c_str());
         
         for (int i=0; i<myRules.size();i++){
-        printf("Rule: %c", myRules[i].head);
-        printf("->%s \n", myRules[i].body.c_str());
+          printf("Rule: %c", myRules[i].head);
+          printf("->%s \n", myRules[i].body.c_str());
         }
         
         printf("Iterations: %i \n", iterations);
@@ -92,9 +117,41 @@ namespace octet
       }
       myFile.close();
       
-      myRules.resize(0);
+      //myRules.resize(0);
       
-      printf("file closed\n");
+      printf("file closed\n\n");
+    }
+    
+    void interpret_rule()
+    {
+      
+      currentInput = axiom;
+      
+      //for all iterations
+      for(int i=0; i < iterations; i++){
+        //go through current iteration(string)
+        for(int j = 0; j < currentInput.length(); j++){
+         //go through all the rules
+          for (int k = 0; k < myRules.size(); k++){
+            //compare in the current iteration any charachters to a rule
+            if (currentInput[j] == myRules[k].head){
+              //adds onto existing string
+              currentOutput.insert(currentOutput.length(),myRules[k].body);
+              
+            }
+              
+          }
+          
+        }
+        //change input to new iteration
+        currentInput = currentOutput;
+        //reset string for next iteration
+        currentOutput = "";
+        printf("%s \n",currentInput.c_str());
+        
+      }
+      
+      
     }
     
 		void draw_world(int x, int y, int w, int h)
