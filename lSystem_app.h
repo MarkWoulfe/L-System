@@ -10,13 +10,15 @@ namespace octet
     
     vec4 colour;
     
+    float lineSize;
+    
   public:
     
-    
-    void init(mat4t mtw, vec4 lineColour) {
+    void init(mat4t mtw, vec4 lineColour, float size) {
       
       modelToWorld = mtw;
       colour = lineColour;
+      lineSize = size;
       
     }
     
@@ -26,9 +28,9 @@ namespace octet
       
       shader.render(modelToProjection, colour);
       
-      static const float vertices[] = {
+      float vertices[] = {
         0, 0, 0,
-        0, 2, 0,
+        0, lineSize, 0,
       };
       
       glVertexAttribPointer(attribute_pos, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)vertices);
@@ -42,6 +44,8 @@ namespace octet
 	{
     
     bool pressed;
+    
+    float lineSize;
     
     mat4t modelToWorld;
     
@@ -76,6 +80,8 @@ namespace octet
     void app_init()
 		{
       pressed = false;
+      
+      lineSize = 2;
       
       color_shader_.init();
       
@@ -196,11 +202,11 @@ namespace octet
       
       line myLine;
       
-      myLine.init(modelToWorld, colour);
+      myLine.init(modelToWorld, colour, lineSize);
       
       lines.push_back(myLine);
       
-      modelToWorld.translate(0,2,0);
+      modelToWorld.translate(0,lineSize,0);
       
     }
     
@@ -244,6 +250,10 @@ namespace octet
           forward(leafColour);
         }
         
+        if (currentInput[i] == 'f'){
+          modelToWorld.translate(0,lineSize,0);
+        }
+        
         if (currentInput[i] == '+'){
           rotateClockwise(angle);
         }
@@ -272,11 +282,17 @@ namespace octet
     
     void key_presses(){
       
-      if (is_key_down('Q')){
-				cameraToWorld.translate(0, -7, -10);
+      if (is_key_down('A')){
+				cameraToWorld.translate(0, 0, -3);
       }
-      if (is_key_down('E')){
-				cameraToWorld.translate(0, 7, 10);
+      if (is_key_down('D')){
+				cameraToWorld.translate(0, 0, 3);
+      }
+      if (is_key_down('W')){
+				cameraToWorld.translate(0, -3, 0);
+      }
+      if (is_key_down('S')){
+				cameraToWorld.translate(0, 3, 0);
       }
       
       if(is_key_down(key_left)){
@@ -292,14 +308,26 @@ namespace octet
       }
       
       if(is_key_down('[')){
-        
+        if(!pressed){
+          lines.resize(0);
+          lineSize++;
+          build_tree();
+        }
+        pressed = true;
       }
       
       else if(is_key_down(']')){
-        
+        if(!pressed){
+          if(lineSize > 1){
+            lines.resize(0);
+            lineSize--;
+            build_tree();
+          }
+        }
+        pressed = true;
       }
       
-      if(is_key_down('U')){
+      else if(is_key_down('U')){
         if(!pressed){
           lines.resize(0);
           leafColour = vec4(1,1,1,1);
@@ -515,9 +543,9 @@ namespace octet
       
       glEnable(GL_DEPTH_TEST);
       
-      draw_tree();
-      
       key_presses();
+      
+      draw_tree();
       
 		}
     
