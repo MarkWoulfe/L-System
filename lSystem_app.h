@@ -1,4 +1,4 @@
-//libraries for reading to/from files
+
 #include <fstream>
 
 namespace octet
@@ -20,25 +20,17 @@ namespace octet
       
     }
     
-    // this is called to draw the world
     void render(color_shader &shader, mat4t &cameraToWorld) {
       
-      // build a projection matrix: model -> world -> camera -> projection
-      // the projection space is the cube -1 <= x/w, y/w, z/w <= 1
       mat4t modelToProjection = mat4t::build_projection_matrix(modelToWorld, cameraToWorld);
       
       shader.render(modelToProjection, colour);
       
-      // this is an array of the positions of the corners of the triangle in 3D
-      // static const means that it is created at compile time
       static const float vertices[] = {
         0, 0, 0,
         0, 2, 0,
       };
       
-      // attribute_pos (=0) is position of each corner
-      // each corner has 3 floats (x, y, z)
-      // there is no gap between the 3 floats and hence the stride is 3*sizeof(float)
       glVertexAttribPointer(attribute_pos, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)vertices);
       glEnableVertexAttribArray(attribute_pos);
       
@@ -48,6 +40,8 @@ namespace octet
   
 	class lSystem_app : public app
 	{
+    
+    bool pressed;
     
     mat4t modelToWorld;
     
@@ -81,6 +75,8 @@ namespace octet
     
     void app_init()
 		{
+      pressed = false;
+      
       color_shader_.init();
       
       cameraToWorld.loadIdentity();
@@ -90,11 +86,11 @@ namespace octet
       angle = 0.f;
       leafColour = vec4(1,0,1,1);
       
-      cameraToWorld.translate(0, 225, 300);
       read_file("../assets/lsystem/tree1.txt");
-      
       interpret_rule();
       build_tree();
+      
+      cameraToWorld.translate(0, 250, 300);
 		}
     
     void read_file(std::string file)
@@ -155,7 +151,7 @@ namespace octet
           }
           
         }
-      
+        
       }
       else {
         printf("failed to open\n");
@@ -268,27 +264,19 @@ namespace octet
       
     }
     
-		void draw_world(int x, int y, int w, int h)
-		{
-      // set a viewport - includes whole window area
-      glViewport(x, y, w, h);
-      
-      // clear the background to black
-      glClearColor(0, 0, 0, 1);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-      
-      // allow Z buffer depth testing (closer objects are always drawn in front of far ones)
-      glEnable(GL_DEPTH_TEST);
-      
+    void draw_tree(){
       for (int i = 0; i < lines.size(); i++){
         lines[i].render(color_shader_, cameraToWorld);
       }
+    }
+    
+    void key_presses(){
       
       if (is_key_down('Q')){
-				cameraToWorld.translate(0, 0, -10);
+				cameraToWorld.translate(0, -7, -10);
       }
       if (is_key_down('E')){
-				cameraToWorld.translate(0, 0, 10);
+				cameraToWorld.translate(0, 7, 10);
       }
       
       if(is_key_down(key_left)){
@@ -303,115 +291,233 @@ namespace octet
         build_tree();
       }
       
+      if(is_key_down('[')){
+        
+      }
+      
+      else if(is_key_down(']')){
+        
+      }
+      
       if(is_key_down('U')){
-        lines.resize(0);
-        leafColour = vec4(1,1,1,1);
-        build_tree();
+        if(!pressed){
+          lines.resize(0);
+          leafColour = vec4(1,1,1,1);
+          build_tree();
+        }
+        pressed = true;
       }
       
-      if(is_key_down('I')){
-        lines.resize(0);
-        leafColour = vec4(1,1,0,1);
-        build_tree();
+      else if(is_key_down('I')){
+        if(!pressed){
+          lines.resize(0);
+          leafColour = vec4(1,1,0,1);
+          build_tree();
+        }
+        pressed = true;
       }
       
-      if(is_key_down('O')){
-        lines.resize(0);
-        leafColour = vec4(1,0,1,1);
-        build_tree();
+      else if(is_key_down('O')){
+        if(!pressed){
+          lines.resize(0);
+          leafColour = vec4(1,0,1,1);
+          build_tree();
+        }
+        pressed = true;
       }
       
-      if(is_key_down('P')){
-        lines.resize(0);
-        leafColour = vec4(0,1,1,1);
-        build_tree();
+      else if(is_key_down('P')){
+        if(!pressed){
+          lines.resize(0);
+          leafColour = vec4(0,1,1,1);
+          build_tree();
+        }
+        pressed = true;
       }
       
-      if(is_key_down(key_up)){
-        lines.resize(0);
-        if(iterations < maxIterations)iterations++;
-        interpret_rule();
-        build_tree();
+      else if(is_key_down(key_up)){
+        if(!pressed){
+          lines.resize(0);
+          if(iterations < maxIterations)iterations++;
+          interpret_rule();
+          build_tree();
+        }
+        pressed = true;
       }
       
-      if(is_key_down(key_down)){
-        lines.resize(0);
-        if(iterations > 1) iterations--;
-        interpret_rule();
-        build_tree();
+      else if(is_key_down(key_down)){
+        if(!pressed){
+          lines.resize(0);
+          if(iterations > 1) iterations--;
+          interpret_rule();
+          build_tree();
+        }
+        pressed = true;
       }
       
-      if(is_key_down('1')){
-        lines.resize(0);
-        myRules.resize(0);
-        axiom = "";
-        iterations = maxIterations = 0;
-        angle = 0.f;
-        leafColour = vec4(1,0,1,1);
-        read_file("../assets/lsystem/tree1.txt");
-        interpret_rule();
-        build_tree();
+      else if(is_key_down('1')){
+        if(!pressed){
+          cameraToWorld.loadIdentity();
+          lines.resize(0);
+          myRules.resize(0);
+          axiom = "";
+          iterations = maxIterations = 0;
+          angle = 0.f;
+          read_file("../assets/lsystem/tree1.txt");
+          interpret_rule();
+          build_tree();
+          cameraToWorld.translate(0, 230, 300);
+        }
+        pressed = true;
       }
       
-      if(is_key_down('2')){
-        lines.resize(0);
-        myRules.resize(0);
-        axiom = "";
-        iterations = maxIterations = 0;
-        angle = 0.f;
-        leafColour = vec4(1,0,1,1);
-        read_file("../assets/lsystem/tree2.txt");
-        interpret_rule();
-        build_tree();
+      else if(is_key_down('2')){
+        if(!pressed){
+          cameraToWorld.loadIdentity();
+          lines.resize(0);
+          myRules.resize(0);
+          axiom = "";
+          iterations = maxIterations = 0;
+          angle = 0.f;
+          read_file("../assets/lsystem/tree2.txt");
+          interpret_rule();
+          build_tree();
+          cameraToWorld.translate(0, 65, 75);
+        }
+        pressed = true;
       }
       
-      if(is_key_down('3')){
-        lines.resize(0);
-        myRules.resize(0);
-        axiom = "";
-        iterations = maxIterations = 0;
-        angle = 0.f;
-        leafColour = vec4(1,0,1,1);
-        read_file("../assets/lsystem/tree3.txt");
-        interpret_rule();
-        build_tree();
+      else if(is_key_down('3')){
+        if(!pressed){
+          cameraToWorld.loadIdentity();
+          lines.resize(0);
+          myRules.resize(0);
+          axiom = "";
+          iterations = maxIterations = 0;
+          angle = 0.f;
+          read_file("../assets/lsystem/tree3.txt");
+          interpret_rule();
+          build_tree();
+          cameraToWorld.translate(0, 65, 75);
+        }
+        pressed = true;
       }
       
-      if(is_key_down('4')){
-        lines.resize(0);
-        myRules.resize(0);
-        axiom = "";
-        iterations = maxIterations = 0;
-        angle = 0.f;
-        leafColour = vec4(1,0,1,1);
-        read_file("../assets/lsystem/tree4.txt");
-        interpret_rule();
-        build_tree();
+      else if(is_key_down('4')){
+        if(!pressed){
+          cameraToWorld.loadIdentity();
+          lines.resize(0);
+          myRules.resize(0);
+          axiom = "";
+          iterations = maxIterations = 0;
+          angle = 0.f;
+          read_file("../assets/lsystem/tree4.txt");
+          interpret_rule();
+          build_tree();
+          cameraToWorld.translate(0, 230, 300);
+        }
+        pressed = true;
       }
       
-      if(is_key_down('5')){
-        lines.resize(0);
-        myRules.resize(0);
-        axiom = "";
-        iterations = maxIterations = 0;
-        angle = 0.f;
-        leafColour = vec4(1,0,1,1);
-        read_file("../assets/lsystem/tree5.txt");
-        interpret_rule();
-        build_tree();
+      else if(is_key_down('5')){
+        if(!pressed){
+          cameraToWorld.loadIdentity();
+          lines.resize(0);
+          myRules.resize(0);
+          axiom = "";
+          iterations = maxIterations = 0;
+          angle = 0.f;
+          read_file("../assets/lsystem/tree5.txt");
+          interpret_rule();
+          build_tree();
+          cameraToWorld.translate(0, 230, 300);
+        }
+        pressed = true;
       }
       
-      if(is_key_down('6')){
-        lines.resize(0);
-        myRules.resize(0);
-        axiom = "";
-        iterations = maxIterations = 0;
-        angle = 0.f;
-        leafColour = vec4(1,0,1,1);
-        read_file("../assets/lsystem/tree6.txt");
-        interpret_rule();
-        build_tree();
+      else if(is_key_down('6')){
+        if(!pressed){
+          cameraToWorld.loadIdentity();
+          lines.resize(0);
+          myRules.resize(0);
+          axiom = "";
+          iterations = maxIterations = 0;
+          angle = 0.f;
+          read_file("../assets/lsystem/tree6.txt");
+          interpret_rule();
+          build_tree();
+          cameraToWorld.translate(0, 80, 90);
+        }
+        pressed = true;
       }
+      
+      else if(is_key_down('7')){
+        if(!pressed){
+          cameraToWorld.loadIdentity();
+          lines.resize(0);
+          myRules.resize(0);
+          axiom = "";
+          iterations = maxIterations = 0;
+          angle = 0.f;
+          read_file("../assets/lsystem/kockislands.txt");
+          interpret_rule();
+          build_tree();
+          cameraToWorld.translate(-40, 40, 100);
+        }
+        pressed = true;
+      }
+      
+      else if(is_key_down('8')){
+        if(!pressed){
+          cameraToWorld.loadIdentity();
+          lines.resize(0);
+          myRules.resize(0);
+          axiom = "";
+          iterations = maxIterations = 0;
+          angle = 0.f;
+          read_file("../assets/lsystem/morekock.txt");
+          interpret_rule();
+          build_tree();
+          cameraToWorld.translate(120, -80, 200);
+        }
+        pressed = true;
+      }
+      
+      else if(is_key_down('9')){
+        if(!pressed){
+          cameraToWorld.loadIdentity();
+          lines.resize(0);
+          myRules.resize(0);
+          axiom = "";
+          iterations = maxIterations = 0;
+          angle = 0.f;
+          read_file("../assets/lsystem/evenmorekock.txt");
+          interpret_rule();
+          build_tree();
+          cameraToWorld.translate(-5, -15, 30);
+        }
+        pressed = true;
+      }
+      
+      else{
+        pressed = false;
+      }
+      
+    }
+    
+		void draw_world(int x, int y, int w, int h)
+		{
+      
+      glViewport(x, y, w, h);
+      
+      glClearColor(0, 0, 0, 1);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      
+      glEnable(GL_DEPTH_TEST);
+      
+      draw_tree();
+      
+      key_presses();
       
 		}
     
