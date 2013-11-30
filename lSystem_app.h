@@ -282,10 +282,10 @@ namespace octet
     
     void key_presses(){
       
-      if (is_key_down('A')){
+      if (is_key_down('Q')){
 				cameraToWorld.translate(0, 0, -3);
       }
-      if (is_key_down('D')){
+      if (is_key_down('E')){
 				cameraToWorld.translate(0, 0, 3);
       }
       if (is_key_down('W')){
@@ -293,6 +293,12 @@ namespace octet
       }
       if (is_key_down('S')){
 				cameraToWorld.translate(0, 3, 0);
+      }
+      if (is_key_down('A')){
+				cameraToWorld.translate(3, 0, 0);
+      }
+      if (is_key_down('D')){
+				cameraToWorld.translate(-3, 0, 0);
       }
       
       if(is_key_down(key_left)){
@@ -379,6 +385,26 @@ namespace octet
           if(iterations > 1) iterations--;
           interpret_rule();
           build_tree();
+        }
+        pressed = true;
+      }
+      
+      //for(int i=0;i<9;i++){
+      //  std::string file = std::to_string(i);
+      //}
+
+      else if(is_key_down('1')){
+        if(!pressed){
+          cameraToWorld.loadIdentity();
+          lines.resize(0);
+          myRules.resize(0);
+          axiom = "";
+          iterations = maxIterations = 0;
+          angle = 0.f;
+          read_file("../assets/lsystem/tree1.txt");
+          interpret_rule();
+          build_tree();
+          cameraToWorld.translate(0, 230, 300);
         }
         pressed = true;
       }
