@@ -302,16 +302,16 @@ namespace octet
 				cameraToWorld.translate(0, 0, 3);
       }
       if (is_key_down('W')){
-				cameraToWorld.translate(0, -3, 0);
-      }
-      if (is_key_down('S')){
 				cameraToWorld.translate(0, 3, 0);
       }
+      if (is_key_down('S')){
+				cameraToWorld.translate(0, -3, 0);
+      }
       if (is_key_down('A')){
-				cameraToWorld.translate(3, 0, 0);
+				cameraToWorld.translate(-3, 0, 0);
       }
       if (is_key_down('D')){
-				cameraToWorld.translate(-3, 0, 0);
+				cameraToWorld.translate(3, 0, 0);
       }
       
       //changing the angles of the branches
