@@ -228,7 +228,6 @@ namespace octet
     
     void rotateAntiClockwise(float angle){
       
-      
       modelToWorld.rotateZ(-angle);
       
     }
