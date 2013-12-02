@@ -3,7 +3,7 @@
 
 namespace octet
 {
-  
+  //create a line class for drawing our trees
   class line {
     
     mat4t modelToWorld;
@@ -13,7 +13,7 @@ namespace octet
     float lineSize;
     
   public:
-    
+    //take in a modelToWorld for the line, a colour and a size
     void init(mat4t mtw, vec4 lineColour, float size) {
       
       modelToWorld = mtw;
@@ -21,19 +21,19 @@ namespace octet
       lineSize = size;
       
     }
-    
+    //draw the line between two points using a basic colour shader
     void render(color_shader &shader, mat4t &cameraToWorld) {
       
       mat4t modelToProjection = mat4t::build_projection_matrix(modelToWorld, cameraToWorld);
       
       shader.render(modelToProjection, colour);
       
-      float vertices[] = {
+      float points[] = {
         0, 0, 0,
         0, lineSize, 0,
       };
       
-      glVertexAttribPointer(attribute_pos, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)vertices);
+      glVertexAttribPointer(attribute_pos, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)points);
       glEnableVertexAttribArray(attribute_pos);
       
       glDrawArrays(GL_LINES, 0, 2);
@@ -42,22 +42,24 @@ namespace octet
   
 	class lSystem_app : public app
 	{
-    
+   
+    //a check to see if a key is pressed used later on
     bool pressed;
     
     float lineSize;
     
     mat4t modelToWorld;
-    
     mat4t cameraToWorld;
     
     color_shader color_shader_;
     
+    //creating a struct to represent each rule with the first element being the head and the rest being the body
     struct rule {
       char head;
       std::string body;
     };
     
+    //setting up variables for the rest of our tree
     std::string axiom;
     dynarray<rule> myRules;
     int iterations, maxIterations;
@@ -65,6 +67,7 @@ namespace octet
     std::string currentOutput;
     std::string currentInput;
     
+    //creating arrays of modeltoWorlds to handle push and pops and lines to draw our trees
     dynarray<mat4t>modelToWorlds;
     dynarray<line>lines;
     
@@ -85,22 +88,27 @@ namespace octet
       
       color_shader_.init();
       
+      //set up the camera for our first tree
       cameraToWorld.loadIdentity();
+      cameraToWorld.translate(0, 250, 300);
       
+      //clear variables for first use
       axiom = "";
       iterations = maxIterations = 0;
       angle = 0.f;
       leafColour = vec4(1,0,1,1);
       
+      //read in our first tree, intepret it and then build it
       read_file("../assets/lsystem/tree1.txt");
       interpret_rule();
       build_tree();
       
-      cameraToWorld.translate(0, 250, 300);
 		}
     
     void read_file(std::string file)
     {
+      //This funtion reads in our tree rule system from a .txt file.
+      //It works by going through line by line and matching certain strings it's looking for and taking their values.
       std::ifstream myFile;
       std::string line;
       myFile.open (file);
@@ -127,6 +135,7 @@ namespace octet
         r.body = "";
         
         printf("file opened\n");
+        //go through the file and pull out the axiom, any rules, angle of rotation and the number of iterations wanted
         while (std::getline(myFile, line)){
           
           if (line.compare("axiom") == 0){
@@ -159,6 +168,7 @@ namespace octet
         }
         
       }
+      //
       else {
         printf("failed to open\n");
       }
@@ -169,7 +179,7 @@ namespace octet
     
     void interpret_rule()
     {
-      
+     //this function uses the populated variables from the read_file function and formulates the pattern.
       currentInput = axiom;
       
       //for all iterations
@@ -199,13 +209,13 @@ namespace octet
     }
     
     void forward(vec4 colour){
-      
+      //a class for moving forwards aka drawing a line, does this by adding a line to an array of lines which are drawn later
       line myLine;
       
       myLine.init(modelToWorld, colour, lineSize);
       
       lines.push_back(myLine);
-      
+      //important to translate the modelToWorld by the size of the line after doing so
       modelToWorld.translate(0,lineSize,0);
       
     }
@@ -223,6 +233,7 @@ namespace octet
       
     }
     
+    //pushing and popping modelToWorlds from an array because the glPushMatrix and PopMatrix functions do not work in octet
     void push(){
       
       modelToWorlds.push_back(modelToWorld);
@@ -237,7 +248,7 @@ namespace octet
     }
     
     void build_tree(){
-      
+      //a function that builds the tree by going through the string pattern and calling the functions above
       modelToWorld.loadIdentity();
       
       for (int i=0; i<currentInput.length(); i++){
@@ -246,10 +257,12 @@ namespace octet
           forward(vec4(0,1,0,1));
         }
         
+        //for the last 3 trees of the assignment the X denotes the end lines aka the leafs so we draw them a different colour
         if (currentInput[i] == 'X'){
           forward(leafColour);
         }
         
+        //this rule for the kock islands example used
         if (currentInput[i] == 'f'){
           modelToWorld.translate(0,lineSize,0);
         }
@@ -275,13 +288,14 @@ namespace octet
     }
     
     void draw_tree(){
+      //go through every line in the line array and render them
       for (int i = 0; i < lines.size(); i++){
         lines[i].render(color_shader_, cameraToWorld);
       }
     }
     
     void key_presses(){
-      
+      //camera controls
       if (is_key_down('Q')){
 				cameraToWorld.translate(0, 0, -3);
       }
@@ -301,6 +315,7 @@ namespace octet
 				cameraToWorld.translate(-3, 0, 0);
       }
       
+      //changing the angles of the branches
       if(is_key_down(key_left)){
         lines.resize(0);
         angle-=1;
@@ -313,6 +328,7 @@ namespace octet
         build_tree();
       }
       
+      //changing the size of the tree
       if(is_key_down('[')){
         if(!pressed){
           lines.resize(0);
@@ -333,6 +349,7 @@ namespace octet
         pressed = true;
       }
       
+      //change the colour of the leafs
       else if(is_key_down('U')){
         if(!pressed){
           lines.resize(0);
@@ -369,6 +386,7 @@ namespace octet
         pressed = true;
       }
       
+      //increase/decrease iterations
       else if(is_key_down(key_up)){
         if(!pressed){
           lines.resize(0);
@@ -389,26 +407,7 @@ namespace octet
         pressed = true;
       }
       
-      //for(int i=0;i<9;i++){
-      //  std::string file = std::to_string(i);
-      //}
-
-      else if(is_key_down('1')){
-        if(!pressed){
-          cameraToWorld.loadIdentity();
-          lines.resize(0);
-          myRules.resize(0);
-          axiom = "";
-          iterations = maxIterations = 0;
-          angle = 0.f;
-          read_file("../assets/lsystem/tree1.txt");
-          interpret_rule();
-          build_tree();
-          cameraToWorld.translate(0, 230, 300);
-        }
-        pressed = true;
-      }
-      
+      //load in different trees
       else if(is_key_down('1')){
         if(!pressed){
           cameraToWorld.loadIdentity();
@@ -553,6 +552,7 @@ namespace octet
         pressed = true;
       }
       
+      //else if used throughout to only allow one iteration of the code in each statement (stops files loading multiple times etc)
       else{
         pressed = false;
       }
@@ -561,16 +561,15 @@ namespace octet
     
 		void draw_world(int x, int y, int w, int h)
 		{
-      
+      //set up our window with a black background
       glViewport(x, y, w, h);
-      
       glClearColor(0, 0, 0, 1);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       
-      glEnable(GL_DEPTH_TEST);
-      
+      //bring in all our key press code
       key_presses();
       
+      //finally draw the tree
       draw_tree();
       
 		}
